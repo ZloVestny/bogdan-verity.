@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOGDAN VERITY — Интернет-магазин</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:#f5f6f8;color:#202124;padding-bottom:75px}
+header{background:white;padding:17px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;box-shadow:0 2px 10px #0000000b}
+.logo{font-size:20px;font-weight:900;letter-spacing:-1px}.logo span{color:#3478f6}
+.header-actions{display:flex;gap:15px}.header-actions button{border:0;background:none;font-size:23px;cursor:pointer}
+.search{padding:15px;background:white}.search input{width:100%;padding:14px;border:1px solid #ddd;border-radius:12px;outline:none;font-size:15px}
+.banner{margin:15px;padding:28px 20px;border-radius:18px;background:linear-gradient(120deg,#172c4e,#3478f6);color:white}
+.banner h1{font-size:25px;margin-bottom:10px}.banner p{font-size:14px;opacity:.9}
+.banner button{margin-top:17px;padding:12px 22px;background:white;color:#245bb5;border:0;border-radius:9px;font-weight:bold;cursor:pointer}
+section{padding:15px}.section-title{font-size:21px;margin-bottom:15px}
+.categories{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px}
+.category{border:1px solid #ddd;background:white;padding:11px 16px;border-radius:20px;white-space:nowrap;cursor:pointer}
+.category.active{background:#3478f6;color:white;border-color:#3478f6}
+.products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.product{background:white;border-radius:14px;overflow:hidden;position:relative;padding-bottom:13px}
+.product-image{height:135px;display:flex;align-items:center;justify-content:center;background:#eef1f5;font-size:65px}
+.favorite{position:absolute;right:9px;top:9px;background:white;border:0;border-radius:50%;width:33px;height:33px;cursor:pointer;font-size:18px}
+.product-info{padding:11px}.product-info h3{font-size:14px;min-height:34px}
+.price{color:#3478f6;font-size:17px;font-weight:bold;margin:9px 0}
+.add{width:100%;padding:11px 5px;border:0;background:#3478f6;color:white;border-radius:8px;font-weight:bold;cursor:pointer}
+.add:active{transform:scale(.97)}
+.bottom-nav{position:fixed;bottom:0;width:100%;background:white;box-shadow:0 -3px 15px #00000012;display:flex;justify-content:space-around;padding:12px 5px;z-index:20}
+.bottom-nav button{background:none;border:0;font-size:12px;cursor:pointer;color:#555}
+.bottom-nav span{display:block;font-size:21px;margin-bottom:4px}
+.page{display:none}.page.active{display:block}
+.cart-item{background:white;padding:14px;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;gap:12px}
+.cart-emoji{font-size:35px}.cart-details{flex:1}.cart-details h3{font-size:14px}
+.quantity{display:flex;gap:12px;align-items:center;margin-top:8px}
+.quantity button{border:0;background:#eaf0ff;padding:6px 11px;border-radius:6px;cursor:pointer}
+.total{background:white;padding:18px;border-radius:12px;margin-top:15px}
+.primary{background:#3478f6;color:white;border:0;width:100%;padding:15px;border-radius:10px;margin-top:15px;font-size:15px;font-weight:bold;cursor:pointer}
+input,textarea{font-family:inherit}.form-input{width:100%;padding:14px;margin:8px 0;border:1px solid #ddd;border-radius:9px;font-size:15px}
+.empty{text-align:center;padding:50px 10px;color:#777}
+footer{background:#151b28;color:white;text-align:center;padding:30px 15px;margin-top:30px}
+.watermark{color:#8ca8d9;font-weight:900;letter-spacing:3px;font-size:17px;margin-top:20px}
+footer p{font-size:12px;color:#aaa;margin-top:10px}
+@media(min-width:700px){.products{grid-template-columns:repeat(4,1fr)}main,.search,.banner{max-width:1100px;margin-left:auto;margin-right:auto}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">BOGDAN <span>VERITY</span></div>
+  <div class="header-actions">
+    <button onclick="showPage('favorites')" aria-label="Избранное">♡</button>
+    <button onclick="showPage('cart')" aria-label="Корзина">🛒 <span class="count" id="cartCount">0</span></button>
+  </div>
+</header>
+<div class="search"><input id="search" type="search" placeholder="🔎 Поиск бытовых товаров..." oninput="renderProducts()"></div>
+<main>
+<div id="home" class="page active">
+  <div class="banner">
+    <h1>Всё для вашего дома!</h1><p>Удобные товары для комфортной жизни.</p>
+    <button onclick="document.getElementById('catalog').scrollIntoView({behavior:'smooth'})">Смотреть каталог →</button>
+  </div>
+  <section>
+    <h2 class="section-title">Категории</h2>
+    <div class="categories" id="categories">
+      <button class="category active" onclick="setCategory('Все',this)">Все</button>
+      <button class="category" onclick="setCategory('Кухня',this)">🍳 Кухня</button>
+      <button class="category" onclick="setCategory('Уборка',this)">🧹 Уборка</button>
+      <button class="category" onclick="setCategory('Техника',this)">🔌 Техника</button>
+      <button class="category" onclick="setCategory('Дом',this)">🏠 Дом</button>
+    </div>
+  </section>
+  <section id="catalog"><h2 class="section-title">Популярные товары</h2><div class="products" id="products"></div></section>
+</div>
+<div id="cart" class="page"><section><h2 class="section-title">🛒 Корзина</h2><div id="cartItems"></div><div id="cartTotal"></div></section></div>
+<div id="favorites" class="page"><section><h2 class="section-title">♡ Избранное</h2><div class="products" id="favoriteItems"></div></section></div>
+<div id="orders" class="page"><section><h2 class="section-title">📦 Мои заказы</h2><div id="orderHistory" class="empty">У вас пока нет заказов.</div></section></div>
+<div id="checkout" class="page">
+  <section><h2 class="section-title">Оформление заказа</h2>
+    <form id="checkoutForm">
+      <input class="form-input" id="customerName" placeholder="Ваше имя" required>
+      <input class="form-input" id="customerPhone" type="tel" placeholder="Номер телефона" required>
+      <input class="form-input" id="customerAddress" placeholder="Адрес доставки" required>
+      <textarea class="form-input" id="customerComment" placeholder="Комментарий к заказу"></textarea>
+      <div id="checkoutTotal"></div><button class="primary" type="submit">Подтвердить заказ</button>
+    </form>
+  </section>
+</div>
+</main>
+<footer><h3>BOGDAN VERITY</h3><p>Интернет-магазин товаров для вашего дома</p><div class="watermark">Bogdan verity</div><p>© 2026 Все права защищены</p></footer>
+<nav class="bottom-nav">
+  <button onclick="showPage('home')"><span>🏠</span>Главная</button>
+  <button onclick="showPage('favorites')"><span>♡</span>Избранное</button>
+  <button onclick="showPage('cart')"><span>🛒</span>Корзина</button>
+  <button onclick="showPage('orders')"><span>📦</span>Заказы</button>
+</nav>
+<script>
+const products=[
+{id:1,name:"Электрический чайник",price:5990,emoji:"🫖",cat:"Техника"},
+{id:2,name:"Набор кастрюль",price:12990,emoji:"🍲",cat:"Кухня"},
+{id:3,name:"Пылесос",price:24990,emoji:"🧹",cat:"Техника"},
+{id:4,name:"Сковорода",price:4990,emoji:"🍳",cat:"Кухня"},
+{id:5,name:"Утюг",price:8990,emoji:"♨️",cat:"Техника"},
+{id:6,name:"Швабра",price:2990,emoji:"🧽",cat:"Уборка"},
+{id:7,name:"Настольная лампа",price:3990,emoji:"💡",cat:"Дом"},
+{id:8,name:"Контейнеры",price:1990,emoji:"🥡",cat:"Кухня"},
+{id:9,name:"Вешалка",price:2490,emoji:"🪝",cat:"Дом"},
+{id:10,name:"Ведро",price:1490,emoji:"🪣",cat:"Уборка"},
+{id:11,name:"Миксер",price:7990,emoji:"🥣",cat:"Техника"},
+{id:12,name:"Плед",price:5990,emoji:"🛏️",cat:"Дом"}
+];
+let cart={},favorites=new Set(),category="Все",orders=[];
+function money(v){return v.toLocaleString("ru-RU")+" ₸"}
+function renderProducts(){
+ const q=document.getElementById("search").value.toLowerCase();
+ const filtered=products.filter(p=>(category==="Все"||p.cat===category)&&p.name.toLowerCase().includes(q));
+ document.getElementById("products").innerHTML=filtered.map(p=>`
+ <div class="product"><button class="favorite" onclick="toggleFavorite(${p.id})">${favorites.has(p.id)?"❤️":"♡"}</button>
+ <div class="product-image">${p.emoji}</div><div class="product-info"><h3>${p.name}</h3>
+ <div class="price">${money(p.price)}</div><button class="add" onclick="addToCart(${p.id})">${cart[p.id]?"В корзине: "+cart[p.id]:"В корзину +"}</button></div></div>`).join("")||'<div class="empty">Товары не найдены</div>';
+}
+function setCategory(cat,btn){category=cat;document.querySelectorAll(".category").forEach(b=>b.classList.remove("active"));btn.classList.add("active");renderProducts()}
+function toggleFavorite(id){favorites.has(id)?favorites.delete(id):favorites.add(id);renderProducts();renderFavorites()}
+function renderFavorites(){
+ const list=products.filter(p=>favorites.has(p.id));
+ document.getElementById("favoriteItems").innerHTML=list.map(p=>`
+ <div class="product"><div class="product-image">${p.emoji}</div><div class="product-info"><h3>${p.name}</h3><div class="price">${money(p.price)}</div>
+ <button class="add" onclick="addToCart(${p.id})">В корзину +</button>
+ <button class="add" style="margin-top:5px;background:#777" onclick="toggleFavorite(${p.id})">Убрать из избранного</button></div></div>`).join("")||'<div class="empty">Нет избранных товаров ♡</div>';
+}
+function addToCart(id){cart[id]=(cart[id]||0)+1;updateCart();renderProducts()}
+function changeQuantity(id,n){cart[id]+=n;if(cart[id]<=0)delete cart[id];updateCart()}
+function getTotal(){return products.reduce((s,p)=>s+p.price*(cart[p.id]||0),0)}
+function updateCart(){
+ const count=Object.values(cart).reduce((a,b)=>a+b,0);
+ document.getElementById("cartCount").textContent=count;
+ const items=products.filter(p=>cart[p.id]);
+ document.getElementById("cartItems").innerHTML=items.map(p=>`
+ <div class="cart-item"><div class="cart-emoji">${p.emoji}</div><div class="cart-details"><h3>${p.name}</h3><b>${money(p.price*cart[p.id])}</b>
+ <div class="quantity"><button onclick="changeQuantity(${p.id},-1)">−</button>${cart[p.id]}<button onclick="changeQuantity(${p.id},1)">+</button></div></div></div>`).join("")||'<div class="empty">🛒 Корзина пока пуста</div>';
+ document.getElementById("cartTotal").innerHTML=count?`<div class="total"><h3>Итого: ${money(getTotal())}</h3><button class="primary" onclick="openCheckout()">Оформить заказ</button></div>`:"";
+ renderProducts();
+}
+function showPage(id){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ if(id==="favorites")renderFavorites();if(id==="cart")updateCart();
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function openCheckout(){
+ if(!getTotal())return;
+ document.getElementById("checkoutTotal").innerHTML="<h3>К оплате: "+money(getTotal())+"</h3>";
+ showPage("checkout");
+}
+document.getElementById("checkoutForm").addEventListener("submit",function(e){
+ e.preventDefault();
+ const order={number:Date.now().toString().slice(-6),name:document.getElementById("customerName").value,phone:document.getElementById("customerPhone").value,address:document.getElementById("customerAddress").value,comment:document.getElementById("customerComment").value,total:getTotal(),status:"Принят (демо)"};
+ orders.unshift(order);cart={};updateCart();
+ document.getElementById("orderHistory").className="";
+ document.getElementById("orderHistory").innerHTML=orders.map(o=>`
+ <div class="total" style="margin-bottom:12px"><h3>Заказ №${o.number}</h3><p>Покупатель: ${o.name}</p><p>Телефон: ${o.phone}</p><p>Адрес: ${o.address}</p><p>Сумма: ${money(o.total)}</p><p>Статус: ${o.status}</p></div>`).join("");
+ this.reset();alert("Спасибо! Заказ успешно оформлен.");showPage("orders");
+});
+renderProducts();updateCart();
+</script>
+</body>
+</html>
